@@ -1,0 +1,344 @@
+#!/usr/bin/perl
+#$|=1;# comment out in prod for better performance with buffering, leave uncommented to read the logs live in a more real time fashion
+use strict;
+use 5.20.1;
+no warnings qw( experimental::smartmatch );
+use feature 'unicode_strings';
+use utf8;
+use URI::Escape::XS;
+use Encode qw(encode decode);
+use Config::Tiny;
+use FindBin;
+
+# Create a config object
+my $config = Config::Tiny->new;
+# Open the config file (this file MUST be in the same dir as this perl program)
+$config = Config::Tiny->read($FindBin::Bin . '/pwsc.conf');
+
+# read config values
+# reguired values
+my $websocket_server_path = $config->{_}->{websocket_server_path};
+my $websocket_server_port = $config->{_}->{websocket_server_port};
+my $fqdn = $config->{_}->{fqdn};
+my $valid_origins = $config->{_}->{valid_origins};
+my $log_message_content = $config->{_}->{log_message_content};
+my $roomtail_length = $config->{_}->{roomtail_length};
+# non-required values
+my $log_file_path = $config->{_}->{log_file_path};
+my $log_file_name = $config->{_}->{log_file_name};
+
+# set defaults on non-required values
+unless($log_file_path){
+    $log_file_path = $websocket_server_path;
+}
+my $log_file_name = $config->{_}->{log_file_name};
+unless($log_file_name){
+    $log_file_name = $fqdn . '.' . $websocket_server_port . '.pwsc.log';
+}
+
+# check for complete config
+unless($websocket_server_path && $websocket_server_port && $fqdn && $valid_origins && $log_file_path && $log_file_name && $roomtail_length){
+    print "pwsc server is NOT configured correctly. Please read the config file comments\n";
+    exit;
+}
+
+# process usage
+if($ARGV[0] eq 'status'){
+    my $oldpid = `cat $websocket_server_path/websocket_server_pwsc.pid`;
+    chomp($oldpid);
+    my $runningpid = `ps -aef | grep -v grep | grep 'websocket_server_pwsc run' | awk '{print \$2}'`;
+    chomp($runningpid);
+    if($runningpid ne ''){
+        print "websocket_server_pwsc is running on pid $runningpid\n\nlast log lines are:\n";
+        system("tail -f $log_file_path/$log_file_name");
+    }else{
+        print "websocket_server_pwsc is NOT running.\n";
+    }
+    exit;
+}elsif($ARGV[0] eq 'start'){
+    my $runningpid = `ps -aef | grep -v grep | grep 'websocket_server_pwsc run' | awk '{print \$2}'`;
+    chomp($runningpid);
+    if($runningpid ne ''){
+        print "websocket_server_pwsc is ALREADY running on pid $runningpid.\n";
+    }else{
+        print "Starting websocket_server_pwsc...";
+        system("$websocket_server_path/websocket_server_pwsc run &");
+        print "started.\n";
+    }
+    exit;
+}elsif($ARGV[0] eq 'stop'){
+    my $runningpid = `ps -aef | grep -v grep | grep 'websocket_server_pwsc run' | awk '{print \$2}'`;
+    chomp($runningpid);
+    my $pidfromfile = `cat $websocket_server_path/websocket_server_pwsc.pid`;
+    chomp($pidfromfile);
+    if(($runningpid eq $pidfromfile) && ($runningpid ne '')){
+        print "Stopping websocket_server_pwsc on pid $runningpid...";
+        system("kill $runningpid");
+        print "stopped.\n";
+    }elsif(($runningpid ne $pidfromfile) && ($runningpid ne '')){
+        print "websocket_server_pwsc IS running, but the pid in the process table does NOT match the pid in our pid file. Please kill the process manually and then figure out what went wrong.\n";
+    }else{
+        print "websocket_server_pwsc is NOT running, nothing to do.\n";
+    }
+    exit;
+}elsif($ARGV[0] eq 'run'){# we are going to run so we need to keep track of our linux process ID
+    system("echo $$ > $websocket_server_path/websocket_server_pwsc.pid");
+}else{
+    print "Usage:\n\n";
+    print "\twebsocket_server_pwsc start\n\n";
+    print "\twebsocket_server_pwsc stop\n\n";
+    print "\twebsocket_server_pwsc run\n\n";
+    print "\twebsocket_server_pwsc status (this will start a live log file tail which you can escape from using CRTL-C)\n\n";
+    exit;
+}
+
+unless(-d ){# make sure log dir exists
+    system("mkdir -p '$log_file_path'");
+}
+
+open STDIN,  '<', '/dev/null' or die "STDIN: $!\n";
+open STDERR, '>>:utf8', "$log_file_path/$log_file_name" or die "STDERR: $!\n"; # logging to file
+open STDOUT, '>>:utf8', "$log_file_path/$log_file_name" or die "STDOUT: $!\n"; # logging to file
+
+# you MUST be using MY version of this module which you can find here: https://github.com/raymondsteers/perl-Net-WebSocket-Server
+# AND you must first install MY version of protocol-websocket which you can find here: https://github.com/raymondsteers/protocol-websocket
+# IF you do not want to do this THEN you must comment out some things below that are set as extra options during the object creation (see comments below)
+use Net::WebSocket::Server;
+use UUID ':all';
+
+my %chatters; # a hash for keeping track of all current chat users
+my %roomtails; # a hash for holding the last roomtail_length lines of each chat room, so that new users will have some idea of the recent conversations
+
+$roomtails{'ONE'} = ();
+$roomtails{'TWO'} = ();
+$roomtails{'THREE'} = ();
+$roomtails{'FOUR'} = ();
+$roomtails{'FIVE'} = ();
+$roomtails{'SIX'} = ();
+
+my @valid_origins = split(',',$valid_origins);
+
+print localtime() . "|STARTUP\n";
+
+Net::WebSocket::Server->new(
+    listen => $websocket_server_port,
+    silence_max => 0, # the websocket spec says that the server should send special PING frames to the client and the client should respond. However in reality none of the current browsers websocket clients do this, so we are turning this featur off. ideally you should make your own server and client code to send frames that act like ping pong. sending back and forth a single 'p' character works.
+    #tick_period => 10,
+        #on_tick => sub {
+            #perhaps send updates to each browser about logged in user stats
+        #},
+    on_connect => sub {
+        my ($serv, $conn) = @_;
+        # the settings below are all very small because the JS should not let you send messages longer than 500 bytes. no reason to overload the server
+        $conn->max_send_size(10000);# only affect OUTGOING messages from server to client
+        $conn->max_recv_size(1000);# only affect INCOMING messages from client to server. UNDERSTAND THIS IS NOT THE MAX SIZE OF AN INCOMING MESSAGE. IT IS THE MAX SIZE OF A SINGLE FRAGMENT
+        $conn->max_fragments(128);# only affect INCOMING messages from client to server
+        $conn->max_mess_size(10000);# only affect INCOMING messages from client to server YOU MUST COMMENT THIS OUT IF YOU ARE NOT USING THE MODIFIED MODULES
+        $conn->on(
+            handshake => sub {
+
+                my ($conn, $handshake) = @_;
+                my $conntracker = $conn->ip() . ':' . $conn->port();
+
+                # clean up old dead trackers if they exist
+                delete $chatters{$conntracker};
+
+                # allow for proxied IP addresses, ALL messages appear proxied when this process is fronted by Apache (as it should be), so we only really care about the real IP
+                if($handshake->req->fields->{'x-forwarded-for'}){
+                    if($handshake->req->fields->{'x-forwarded-for'} ne '127.0.0.1'){
+                        $chatters{$conntracker}{ip} = $handshake->req->fields->{'x-forwarded-for'};
+                    }
+                }else{
+                    $chatters{$conntracker}{ip} = $conn->ip();
+                }
+
+                my $ua = $handshake->req->fields->{'user-agent'};
+
+                unless($handshake->req->origin ~~ @valid_origins){
+                    print localtime() . "|DROPCONNBADORIGIN|" . $chatters{$conntracker}{ip} . ':' . $conn->port() . "|$ua\n";
+                    $conn->disconnect();
+                    return;
+                }
+
+                $chatters{$conntracker}{handle} = $conn;
+                $chatters{$conntracker}{ua} = $ua;
+                my @roomsin;
+                $chatters{$conntracker}{roomsin} = \@roomsin;
+
+                print localtime() . "|CONNECTION|" . $chatters{$conntracker}{ip} . ':' . $conn->port() . "|$ua\n";
+
+            },
+            utf8 => sub {
+                my ($conn, $msg) = @_;
+
+                my $conntracker = $conn->ip() . ':' . $conn->port();
+
+                if(defined $chatters{$conntracker}{handle}){# check to see this is a good - previously connected client
+                    if($msg =~ m/^PC\|/){# initial post connection message from browser
+                        my ($directive,$browserts,$browsertz,$browserlocale,$browserlang) = split(/\|/,$msg);
+                        $chatters{$conntracker}{browserts} = $browserts;
+                        $chatters{$conntracker}{browsertz} = $browsertz;
+                        $chatters{$conntracker}{browserlocale} = $browserlocale;
+                        $chatters{$conntracker}{browserlang} = $browserlang;
+
+                        print localtime() . "|POSTCONN|" . $chatters{$conntracker}{ip} . ':' . $conn->port() . "|$browserts|$browsertz|$browserlocale|$browserlang\n";
+                    }
+
+                    if($msg =~ m/^ER\|/){# ENTER ROOM:
+                        my ($directive,$roomname,$chatterhandle) = split(/\|/,$msg);
+
+                        push @{$chatters{$conntracker}{roomsin}}, "$roomname|$chatterhandle"; # add the room plus the chatterhandle to the chatters roomsin list
+
+                        print localtime() . "|ENTERROOM|" . $chatters{$conntracker}{ip} . ':' . $conn->port() . "|$roomname|$chatterhandle\n";
+
+                        # when you enter a room you need a list of current chatters
+                        my $chatterlist;
+
+                        foreach my $client (keys %chatters){# $client is the conntracker for all the connections (loop through all connections)
+                            foreach my $roomandhandle (@{$chatters{$client}{roomsin}}){
+                                my($room, $handle) = split(/\|/, $roomandhandle);
+                                if($room eq $roomname){# this chatter is in the same room as the message was sent to
+                                    if($handle ne $chatterhandle){
+                                        $chatters{$client}{handle}->send_utf8("CER|$roomname|$chatterhandle");# room chatter enter, but don't message the new chatter that he has joined the room as he will get the room chatters list below
+                                    }
+                                    $chatterlist = $chatterlist . "$handle~";
+                                }
+                            }
+                        }
+
+                        chop($chatterlist);# remove the last ~
+                        $chatters{$conntracker}{handle}->send_utf8("RCL|$roomname|$chatterlist");# send the new user the room chatters list
+
+                        # send the new chatter the last 50 messages for the room
+                        foreach my $roomhistorymessage (@{$roomtails{$roomname}}){
+                            $chatters{$conntracker}{handle}->send_utf8("MFR|$roomname|$roomhistorymessage");
+                        }
+
+                    }
+
+                    if($msg =~ m/^LR\|/){# LEAVE ROOM:
+                        my ($directive,$roomname,$chatterhandle) = split(/\|/,$msg);
+
+                        print localtime() . "|LEAVEROOM|" . $chatters{$conntracker}{ip} . ':' . $conn->port() . "|$roomname|$chatterhandle\n";
+
+                        my @newroomsin;
+
+                        foreach my $roomandhandle (@{$chatters{$conntracker}{roomsin}}){
+                            my($room, $handle) = split(/\|/, $roomandhandle);
+                            if($room ne $roomname){
+                                push @newroomsin, $roomandhandle;
+                            }
+                        }
+
+                        $chatters{$conntracker}{roomsin} = \@newroomsin;
+
+                        #TODO: send this message out when the user gets disconnected also
+                        foreach my $client (keys %chatters){# $client is the conntracker for all the connections (loop through all connections)
+                            foreach my $roomandhandle (@{$chatters{$client}{roomsin}}){
+                                my($room, $handle) = split(/\|/, $roomandhandle);
+                                if($room eq $roomname){# this chatter is in the same room as the message was sent to
+                                    $chatters{$client}{handle}->send_utf8("CLR|$roomname|$chatterhandle");# room chatter leave
+                                }
+                            }
+                        }
+
+                    }
+
+                    if($msg =~ m/^MR\|/){# MESSAGE ROOM:
+                        my ($directive,$roomname,$chatterhandle,$towhom,$publicprivate,$message) = split(/\|/,$msg);
+
+                        # check all the connected chatters to see if they are in the room
+                        foreach my $client (keys %chatters){# $client is the conntracker for all the connections (loop through all connections)
+
+                            foreach my $roomandhandle (@{$chatters{$client}{roomsin}}){
+
+                                my($room, $handle) = split(/\|/, $roomandhandle);
+                                if($room eq $roomname){# this chatter is in the same room as the message was sent to
+                                    if( ($towhom eq 'EVERYONE') || ($towhom eq $handle) ){
+                                        $chatters{$client}{handle}->send_utf8("MFR|$roomname|$chatterhandle|$towhom|$publicprivate|$message");
+                                    }
+
+                                }
+                            }
+                        }
+
+                        # keep the last roomtail_length messages per room to serve to new chatters after join
+                        push @{$roomtails{$roomname}}, "$chatterhandle|$towhom|$publicprivate|$message";
+                        # remove messages older than roomtail_length
+                        if(scalar( @{$roomtails{$roomname}} ) > $roomtail_length){
+                            shift @{$roomtails{$roomname}};
+                        }
+
+                        if($log_message_content == 1){
+                            print localtime() . "|MESSAGEROOM|" . $chatters{$conntracker}{ip} . ':' . $conn->port() . "|$roomname|$chatterhandle|$publicprivate|$towhom|$message\n";
+                        }else{
+                            print localtime() . "|MESSAGEROOM|" . $chatters{$conntracker}{ip} . ':' . $conn->port() . "|$roomname|$chatterhandle|$publicprivate|$towhom|message size: " . length($message) . "\n";
+                        }
+                    }
+
+
+                }
+            },
+            disconnect => sub {
+                my ($conn, $code, $reason) = @_;
+                my $conntracker = $conn->ip() . ':' . $conn->port();
+
+                if(defined $chatters{$conntracker}{handle}){
+
+                    #TODO: send this message out when the user gets disconnected also
+                    #foreach my $client (keys %chatters){# $client is the conntracker for all the connections (loop through all connections)
+                        #foreach my $roomandhandle (@{$chatters{$client}{roomsin}}){
+                            #my($room, $handle) = split(/\|/, $roomandhandle);
+                            #if($room eq $roomname){# this chatter is in the same room as the message was sent to
+                                #$chatters{$client}{handle}->send_utf8("CLR|$roomname|$chatterhandle");# room chatter leave
+                            #}
+                        #}
+                    #}
+
+
+                    print localtime() . "|DISCONNECT|" . $chatters{$conntracker}{ip} . ':' . $conn->port() . "|$code|$reason\n";
+                    delete $chatters{$conntracker};
+                }
+            }
+        );
+
+    },
+)->start;
+
+__END__
+
+message protocol utf8 only:
+
+
+we collect the following data from the browser right after connection to the WS server by making JS function queries and sending a WS message:
+
+const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;    "Europe/Sofia" (we will remove quotes)
+var now = new Date();                                                 Wed Feb 05 2020 12:30:31 GMT+0200 (Eastern European Standard Time)
+Intl.NumberFormat().resolvedOptions().locale                          "en-GB" (we will remove quotes)
+const getNavigatorLanguage = () => (navigator.languages && navigator.languages.length) ? navigator.languages[0] : navigator.userLanguage || navigator.language || navigator.browserLanguage || 'en';
+getNavigatorLanguage();       "en-US" (we will remove quotes)
+
+we will store those in the $chatters{$conntracker}{varname} hash keys
+
+
+INITIAL POST CONNECTION MESSAGE FROM BROWSER:
+PC|Wed Feb 05 2020 12:30:31 GMT+0200 (Eastern European Standard Time)|Europe/Sofia|en-GB|en-US
+
+$chatters{$conntracker}{browserts}
+$chatters{$conntracker}{browsertz}
+$chatters{$conntracker}{browserlocale}
+$chatters{$conntracker}{browserlang}
+
+ENTER ROOM:
+ER|roomname|chatterhandle
+
+LEAVE ROOM:
+LR|roomname|chatterhandle
+
+MESSAGE ROOM:
+MR|roomname|chatterhandle|towhom|publicprivate|message
+MR|ONE|first last|other person|PRI|Hello there
+
+mwssages from server to browsers:
+
+

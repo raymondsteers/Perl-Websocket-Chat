@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>PWSC CHAT</title>
+    <meta name="viewport" content="width = device-width, initial-scale = 1">
+    <link rel="stylesheet" href="pwsc.css" />
+    <link rel="stylesheet" href="themes/jquery.mobile.icons.min.css" />
+    <link rel="stylesheet" href="//code.jquery.com/mobile/1.4.5/jquery.mobile.structure-1.4.5.min.css" />
+    <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script src="//code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+    <script src="//unpkg.com/freezeframe/dist/freezeframe.min.js"></script>
+    <script src="DetectRTC.min.js"></script>
+    <script src="pwsc.js"></script>
+</head>
+
+<body>
+    <div data-role="page" class="ui-responsive-panel" id="HOME">
+        <div data-role="header" data-position="fixed">
+            <h2>PWSC CHAT</h2>
+            <a href="#panel1" data-icon="bars" >menu</a>
+            <a href="#popupHelpDialog" data-icon="info" data-iconpos="right" data-rel="popup" data-position-to="window" data-transition="pop" >help</a>
+        </div>
+
+        <div role="main" class="ui-content">
+            <div class="ui-grid-b ui-responsive">
+                <div class="centerme">
+                    <h2>ALL ROOMS:</h2></div>
+                <div class="ui-block-a"><a href="#ONE" data-role="button" data-theme="j">ONE</a></div>
+                <div class="ui-block-b"><a href="#TWO" data-role="button" data-theme="b">TWO</a></div>
+                <div class="ui-block-c"><a href="#THREE" data-role="button" data-theme="c">THREE</a></div>
+                <div class="ui-block-a"><a href="#FOUR" data-role="button" data-theme="d">FOUR</a></div>
+                <div class="ui-block-b"><a href="#FIVE" data-role="button" data-theme="e">FIVE</a></div>
+                <div class="ui-block-c"><a href="#SIX" data-role="button" data-theme="f">SIX</a></div>
+            </div>
+        </div>
+    </div>
+
+    <div data-role="page" class="ui-responsive-panel" id="ONE">
+        <div data-role="header" data-position="fixed">
+            <h2>ONE</h2>
+            <a href="#panel1" data-icon="bars" data-iconpos="notext">menu</a>
+            <a href="#popupHelpDialog" data-icon="info" data-iconpos="notext" data-rel="popup" data-position-to="window" data-transition="pop">help</a>
+
+            <div class="sendbox ui-grid-solo">
+                <div class="ui-grid-a ui-responsive">
+                    <div class="notentered">
+                        <div class="ui-block-a">
+                            <input type="text" class="yourname" placeholder="your name">
+                        </div>
+                    </div>
+                    <div class="entered">
+                        <div class="ui-block-a">
+                            <div class="yourchosenname"></div>
+                        </div>
+                    </div>
+
+                    <div class="ui-block-b">
+                        <div class="entered">
+                            <select class="publicprivate" data-mini="true" data-inline="true">
+                                <option value="private">privately</option>
+                                <option value="public">publicly&nbsp;</option>
+                            </select>
+                            <span class="saysto">says to:</span>
+                        </div>
+                        <div class="notentered">
+                            <button class="enterroom ui-shadow ui-btn ui-corner-all" data-theme="h" data-inline="true">ENTER</button>
+                        </div>
+                        <div class="entered">
+                            <select class="touser" data-mini="true" data-inline="true">
+                                <option value="EVERYONE">EVERYONE</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ui-grid-a ui-responsive">
+                    <div class="ui-block-a">
+                        <input type="text" class="yourmessage" value="" placeholder="your message" disabled>
+                    </div>
+
+                    <div class="ui-block-b">
+                        <button class="sendbutton ui-shadow ui-btn ui-corner-all" data-theme="h" data-inline="true" disabled>SEND</button>
+                        <a class="uploadbutton ui-shadow ui-btn ui-corner-all ui-disabled" href="#imageUploadDialog" data-rel="popup" data-transition="pop" data-theme="h" data-inline="true" data-position-to="window">Upload Image</a>
+                        <button class="leavebutton ui-shadow ui-btn ui-corner-all" data-theme="h" data-inline="true" disabled>Leave</button>
+                        <button class="squelchbutton ui-shadow ui-btn ui-corner-all" data-theme="h" data-inline="true" disabled>Squelch</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div role="main" class="ui-content">
+            <div class="ui-grid-solo">
+                <div class="chatscroller ui-block-a"></div>
+            </div>
+        </div>
+    </div>
+    <div data-role="page" class="ui-responsive-panel" id="TWO">
+        <div data-role="header" data-position="fixed">
+            <h2>TWO</h2>
+            <a href="#panel1" data-icon="bars" data-iconpos="notext">menu</a>
+            <a href="#popupHelpDialog" data-icon="info" data-iconpos="notext" data-rel="popup" data-position-to="window" data-transition="pop">help</a>
+
+            <div class="sendbox ui-grid-solo">
+                <div class="ui-grid-a ui-responsive">
+                    <div class="notentered">
+                        <div class="ui-block-a">
+                            <input type="text" class="yourname" placeholder="your name">
+                        </div>
+                    </div>
+                    <div class="entered">
+                        <div class="ui-block-a">
+                            <div class="yourchosenname"></div>
+                        </div>
+                    </div>
+
+                    <div class="ui-block-b">
+                        <div class="entered">
+                            <select class="publicprivate" data-mini="true" data-inline="true">
+                                <option value="private">privately</option>
+                                <option value="public">publicly&nbsp;</option>
+                            </select>
+                            <span class="saysto">says to:</span>
+                        </div>
+                        <div class="notentered">
+                            <button class="enterroom ui-shadow ui-btn ui-corner-all" data-theme="h" data-inline="true">ENTER</button>
+                        </div>
+                        <div class="entered">
+                            <select class="touser" data-mini="true" data-inline="true">
+                                <option value="EVERYONE">EVERYONE</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ui-grid-a ui-responsive">
+                    <div class="ui-block-a">
+                        <input type="text" class="yourmessage" value="" placeholder="your message" disabled>
+                    </div>
+
+                    <div class="ui-block-b">
+                        <button class="sendbutton ui-shadow ui-btn ui-corner-all" data-theme="h" data-inline="true" disabled>SEND</button>
+                        <a class="uploadbutton ui-shadow ui-btn ui-corner-all ui-disabled" href="#imageUploadDialog" data-rel="popup" data-transition="pop" data-theme="h" data-inline="true" data-position-to="window">Upload Image</a>
+                        <button class="leavebutton ui-shadow ui-btn ui-corner-all" data-theme="h" data-inline="true" disabled>Leave</button>
+                        <button class="squelchbutton ui-shadow ui-btn ui-corner-all" data-theme="h" data-inline="true" disabled>Squelch</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div role="main" class="ui-content">
+            <div class="ui-grid-solo">
+                <div class="chatscroller ui-block-a"></div>
+            </div>
+        </div>
+    </div>
+    <div data-role="page" class="ui-responsive-panel" id="THREE">
+        <div data-role="header" data-position="fixed">
+            <h2>THREE</h2>
+            <a href="#panel1" data-icon="bars" data-iconpos="notext">menu</a>
+            <a href="#popupHelpDialog" data-icon="info" data-iconpos="notext" data-rel="popup" data-position-to="window" data-transition="pop">help</a>
+
+            <div class="sendbox ui-grid-solo">
+                <div class="ui-grid-a ui-responsive">
+                    <div class="notentered">
+                        <div class="ui-block-a">
+                            <input type="text" class="yourname" placeholder="your name">
+                        </div>
+                    </div>
+                    <div class="entered">
+                        <div class="ui-block-a">
+                            <div class="yourchosenname"></div>
+                        </div>
+                    </div>
+
+                    <div class="ui-block-b">
+                        <div class="entered">
+                            <select class="publicprivate" data-mini="true" data-inline="true">
+                                <option value="private">privately</option>
+                                <option value="public">publicly&nbsp;</option>
+                            </select>
+                            <span class="saysto">says to:</span>
+                        </div>
+                        <div class="notentered">
+                            <button class="enterroom ui-shadow ui-btn ui-corner-all" data-theme="h" data-inline="true">ENTER</button>
+                        </div>
+                        <div class="entered">
+                            <select class="touser" data-mini="true" data-inline="true">
+                                <option value="EVERYONE">EVERYONE</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ui-grid-a ui-responsive">
+                    <div class="ui-block-a">
+                        <input type="text" class="yourmessage" value="" placeholder="your message" disabled>
+                    </div>
+
+                    <div class="ui-block-b">
+                        <button class="sendbutton ui-shadow ui-btn ui-corner-all" data-theme="h" data-inline="true" disabled>SEND</button>
+                        <a class="uploadbutton ui-shadow ui-btn ui-corner-all ui-disabled" href="#imageUploadDialog" data-rel="popup" data-transition="pop" data-theme="h" data-inline="true" data-position-to="window">Upload Image</a>
+                        <button class="leavebutton ui-shadow ui-btn ui-corner-all" data-theme="h" data-inline="true" disabled>Leave</button>
+                        <button class="squelchbutton ui-shadow ui-btn ui-corner-all" data-theme="h" data-inline="true" disabled>Squelch</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div role="main" class="ui-content">
+            <div class="ui-grid-solo">
+                <div class="chatscroller ui-block-a"></div>
+            </div>
+        </div>
+    </div>
+    <div data-role="page" class="ui-responsive-panel" id="FOUR">
+        <div data-role="header" data-position="fixed">
+            <h2>FOUR</h2>
+            <a href="#panel1" data-icon="bars" data-iconpos="notext">menu</a>
+            <a href="#popupHelpDialog" data-icon="info" data-iconpos="notext" data-rel="popup" data-position-to="window" data-transition="pop">help</a>
+
+            <div class="sendbox ui-grid-solo">
+                <div class="ui-grid-a ui-responsive">
+                    <div class="notentered">
+                        <div class="ui-block-a">
+                            <input type="text" class="yourname" placeholder="your name">
+                        </div>
+                    </div>
+                    <div class="entered">
+                        <div class="ui-block-a">
+                            <div class="yourchosenname"></div>
+                        </div>
+                    </div>
+
+                    <div class="ui-block-b">
+                        <div class="entered">
+                            <select class="publicprivate" data-mini="true" data-inline="true">
+                                <option value="private">privately</option>
+                                <option value="public">publicly&nbsp;</option>
+                            </select>
+                            <span class="saysto">says to:</span>
+                        </div>
+                        <div class="notentered">
+                            <button class="enterroom ui-shadow ui-btn ui-corner-all" data-theme="h" data-inline="true">ENTER</button>
+                        </div>
+                        <div class="entered">
+                            <select class="touser" data-mini="true" data-inline="true">
+                                <option value="EVERYONE">EVERYONE</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ui-grid-a ui-responsive">
+                    <div class="ui-block-a">
+                        <input type="text" class="yourmessage" value="" placeholder="your message" disabled>
+                    </div>
+
+                    <div class="ui-block-b">
+                        <button class="sendbutton ui-shadow ui-btn ui-corner-all" data-theme="h" data-inline="true" disabled>SEND</button>
+                        <a class="uploadbutton ui-shadow ui-btn ui-corner-all ui-disabled" href="#imageUploadDialog" data-rel="popup" data-transition="pop" data-theme="h" data-inline="true" data-position-to="window">Upload Image</a>
+                        <button class="leavebutton ui-shadow ui-btn ui-corner-all" data-theme="h" data-inline="true" disabled>Leave</button>
+                        <button class="squelchbutton ui-shadow ui-btn ui-corner-all" data-theme="h" data-inline="true" disabled>Squelch</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div role="main" class="ui-content">
+            <div class="ui-grid-solo">
+                <div class="chatscroller ui-block-a"></div>
+            </div>
+        </div>
+    </div>
+    <div data-role="page" class="ui-responsive-panel" id="FIVE">
+        <div data-role="header" data-position="fixed">
+            <h2>FIVE</h2>
+            <a href="#panel1" data-icon="bars" data-iconpos="notext">menu</a>
+            <a href="#popupHelpDialog" data-icon="info" data-iconpos="notext" data-rel="popup" data-position-to="window" data-transition="pop">help</a>
+
+            <div class="sendbox ui-grid-solo">
+                <div class="ui-grid-a ui-responsive">
+                    <div class="notentered">
+                        <div class="ui-block-a">
+                            <input type="text" class="yourname" placeholder="your name">
+                        </div>
+                    </div>
+                    <div class="entered">
+                        <div class="ui-block-a">
+                            <div class="yourchosenname"></div>
+                        </div>
+                    </div>
+
+                    <div class="ui-block-b">
+                        <div class="entered">
+                            <select class="publicprivate" data-mini="true" data-inline="true">
+                                <option value="private">privately</option>
+                                <option value="public">publicly&nbsp;</option>
+                            </select>
+                            <span class="saysto">says to:</span>
+                        </div>
+                        <div class="notentered">
+                            <button class="enterroom ui-shadow ui-btn ui-corner-all" data-theme="h" data-inline="true">ENTER</button>
+                        </div>
+                        <div class="entered">
+                            <select class="touser" data-mini="true" data-inline="true">
+                                <option value="EVERYONE">EVERYONE</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ui-grid-a ui-responsive">
+                    <div class="ui-block-a">
+                        <input type="text" class="yourmessage" value="" placeholder="your message" disabled>
+                    </div>
+
+                    <div class="ui-block-b">
+                        <button class="sendbutton ui-shadow ui-btn ui-corner-all" data-theme="h" data-inline="true" disabled>SEND</button>
+                        <a class="uploadbutton ui-shadow ui-btn ui-corner-all ui-disabled" href="#imageUploadDialog" data-rel="popup" data-transition="pop" data-theme="h" data-inline="true" data-position-to="window">Upload Image</a>
+                        <button class="leavebutton ui-shadow ui-btn ui-corner-all" data-theme="h" data-inline="true" disabled>Leave</button>
+                        <button class="squelchbutton ui-shadow ui-btn ui-corner-all" data-theme="h" data-inline="true" disabled>Squelch</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div role="main" class="ui-content">
+            <div class="ui-grid-solo">
+                <div class="chatscroller ui-block-a"></div>
+            </div>
+        </div>
+    </div>
+    <div data-role="page" class="ui-responsive-panel" id="SIX">
+        <div data-role="header" data-position="fixed">
+            <h2>SIX</h2>
+            <a href="#panel1" data-icon="bars" data-iconpos="notext">menu</a>
+            <a href="#popupHelpDialog" data-icon="info" data-iconpos="notext" data-rel="popup" data-position-to="window" data-transition="pop">help</a>
+
+            <div class="sendbox ui-grid-solo">
+                <div class="ui-grid-a ui-responsive">
+                    <div class="notentered">
+                        <div class="ui-block-a">
+                            <input type="text" class="yourname" placeholder="your name">
+                        </div>
+                    </div>
+                    <div class="entered">
+                        <div class="ui-block-a">
+                            <div class="yourchosenname"></div>
+                        </div>
+                    </div>
+
+                    <div class="ui-block-b">
+                        <div class="entered">
+                            <select class="publicprivate" data-mini="true" data-inline="true">
+                                <option value="private">privately</option>
+                                <option value="public">publicly&nbsp;</option>
+                            </select>
+                            <span class="saysto">says to:</span>
+                        </div>
+                        <div class="notentered">
+                            <button class="enterroom ui-shadow ui-btn ui-corner-all" data-theme="h" data-inline="true">ENTER</button>
+                        </div>
+                        <div class="entered">
+                            <select class="touser" data-mini="true" data-inline="true">
+                                <option value="EVERYONE">EVERYONE</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ui-grid-a ui-responsive">
+                    <div class="ui-block-a">
+                        <input type="text" class="yourmessage" value="" placeholder="your message" disabled>
+                    </div>
+
+                    <div class="ui-block-b">
+                        <button class="sendbutton ui-shadow ui-btn ui-corner-all" data-theme="h" data-inline="true" disabled>SEND</button>
+                        <a class="uploadbutton ui-shadow ui-btn ui-corner-all ui-disabled" href="#imageUploadDialog" data-rel="popup" data-transition="pop" data-theme="h" data-inline="true" data-position-to="window">Upload Image</a>
+                        <button class="leavebutton ui-shadow ui-btn ui-corner-all" data-theme="h" data-inline="true" disabled>Leave</button>
+                        <button class="squelchbutton ui-shadow ui-btn ui-corner-all" data-theme="h" data-inline="true" disabled>Squelch</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div role="main" class="ui-content">
+            <div class="ui-grid-solo">
+                <div class="chatscroller ui-block-a"></div>
+            </div>
+        </div>
+    </div>
+
+
+    <div data-role="panel" data-display="push" class="ui-responsive-panel" data-theme="b" id="panel1">
+        <ul data-role="listview">
+            <li data-icon="delete"><a href="#" data-rel="close">Close Menu</a></li>
+            <li data-icon="home"><a href="#HOME">HOME</a></li>
+            <li data-icon="refresh"><a href="#" id="autoscroll" data-rel="close">Turn Autoscroll On</a></li>
+            <li><a href="#ONE">ONE</a></li>
+            <li><a href="#TWO">TWO</a></li>
+            <li><a href="#THREE">THREE</a></li>
+            <li><a href="#FOUR">FOUR</a></li>
+            <li><a href="#FIVE">FIVE</a></li>
+            <li><a href="#SIX">SIX</a></li>
+        </ul>
+    </div>
+
+    <div data-role="popup" id="popupHelpDialog" data-overlay-theme="b" data-theme="b" style="max-width:400px;">
+        <div data-role="header" data-theme="a">
+            <h1>HELP</h1>
+        </div>
+        <div role="main" class="ui-content">
+            <p>Autoscroll is OFF by default. You can turn it on in the menu (upper left corner icon).</p>
+            <p>You can be in as many rooms as you like at the same time.</p>
+            <p>You can have a different name in each room.</p>
+            <p>There is no limit to the number of users in each room.</p>
+            <p>Use the icon in the upper left corner to both enter rooms and switch between rooms you are already in.</p>
+            <p>Do not discuss things you know are illegal, immoral, or just plain stupid, unless you want to get banned.</p>
+            <p>There are NO accounts.</p>
+            <p>There are NO avatars.</p>
+            <p>There are NO cookies. Therefore, you will have to type your handle (name) into the box each time you enter a room.</p>
+            <p>There are NO ads.</p>
+            <p>Please refrain from acting like an asshole.</p>
+            <p>Links to images will automatically be shown as images, you do not need to do anything except paste the URL to the image in to the message.</p>
+            <p>Images that are too large (over 1920 pixels in either height or width) will not be shown, but will instead show you a warning. This is to keep users with bad image posting habits from slowing down the experiences of other users. If you send a message with multiple pics and text and only one of those images is too large, then the entire message will NOT be sent, including the valid images and the text.</p>
+            <p>Images will automatically be scaled down to show at your current screen width, so that no horizontal scrolling is required.</p>
+            <p>Links to non-images will automatically be shown as links that will open in a new tab.</p>
+            <p>Choosing 'private' to EVERYONE will still be public.(duh)</p>
+            <a href="#" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-btn-b" data-rel="back">Close</a>
+        </div>
+    </div>
+
+    <div data-role="popup" id="imageUploadDialog" data-overlay-theme="b" data-theme="b" >
+        <div data-role="header" data-theme="a">
+            <h1>UPLOAD IMAGE</h1>
+        </div>
+        <div role="main" class="ui-content">
+            <input type="file" id="upload" name="file"/>
+            <p>......or drop a file on the box above</p>
+            <p>The SEND button will be disabled until your upload completes.</p>
+            <a id="but_upload" href="#" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-btn-b" data-rel="back">Upload Image</a>
+            <a href="#" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-btn-b" data-rel="back">Close</a>
+        </div>
+    </div>
+
+    <div id="conndot"></div>
+    <div id="connmess">connecting...</div>
+
+    <img id="hideimage">
+
+</body>
+
+</html>
