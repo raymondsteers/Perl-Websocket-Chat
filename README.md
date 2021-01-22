@@ -42,7 +42,7 @@ Usage:
 It's likely a good idea to use some linux server init script to keep it running and monitored as well. You should also have some monitoring for disk usage in your uploads dir or you might get your server filled up.
 
 ## Browser Clients
-It works in Chrome on MacOS and on Android Chrome with issue. Should work pretty much everywhere too. The CSS layout will adapt to screen size automatically. Mobile optimized.
+It works in Chrome on MacOS and on Android Chrome without issues. Should work pretty much everywhere else too. The CSS layout will adapt to screen size automatically. Mobile optimized.
 
 ## Screen Shots
 These are taken from a fully functioning live URL:
