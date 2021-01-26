@@ -54,6 +54,12 @@ It is possible to have multiple websocket server processes listening on differen
 ## ToDo
 * Peer to Peer WebRTC video and audio calling between 2 users, coordinated via websocket messages. Once the WebRTC connection is established there will be no server interaction
 * theme changes
+* rooms should be dynamically created instead of fixed
+* private rooms
+* audio/video file uploads and embedded players
+* social sharing cards embedded
+* message bubbles
+
 
 
 
